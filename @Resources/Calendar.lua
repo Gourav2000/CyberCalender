@@ -89,10 +89,38 @@ function Update()
     local nowDay = tonumber(os.date('%d'))
     local nowMonth = tonumber(os.date('%m'))
     local nowYear = tonumber(os.date('%Y'))
+    local nowDateString = os.date("%Y-%m-%d")
+
+    -- Check if the selected date was today (before updating todayDay)
+    local wasSelectedDateToday = (selectedDate == os.date("%Y-%m-%d", os.time() - 86400))  -- yesterday's date
 
     -- If we're viewing the current month, update today
     if currentMonth == nowMonth and currentYear == nowYear then
         todayDay = nowDay
+    end
+
+    -- If selected date was today before the update, advance it to tomorrow
+    if selectedDate then
+        local y, m, d = selectedDate:match("^(%d%d%d%d)-(%d%d)-(%d%d)$")
+        if y then
+            y, m, d = tonumber(y), tonumber(m), tonumber(d)
+            -- Check if selected date was yesterday (i.e., it was today before midnight)
+            local yesterday = os.date("%Y-%m-%d", os.time() - 86400)
+            if selectedDate == yesterday then
+                -- Advance selected date to tomorrow
+                d = d + 1
+                if d > GetDaysInMonth(m, y) then
+                    d = 1
+                    m = m + 1
+                    if m > 12 then
+                        m = 1
+                        y = y + 1
+                    end
+                end
+                selectedDate = string.format("%04d-%02d-%02d", y, m, d)
+                print('Selected date auto-advanced at midnight: ' .. selectedDate)
+            end
+        end
     end
 
     -- Return the month and year string
